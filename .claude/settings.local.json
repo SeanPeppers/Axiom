@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://raw.githubusercontent.com/forayconsulting/gemini_cli_skill/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/microsoft/playwright-cli/main/README.md)",
+      "Bash(npm install:*)",
+      "Bash(git clone:*)",
+      "Bash(mkdir -p ~/.claude/skills)",
+      "Bash(cp -r /tmp/gemini_cli_skill ~/.claude/skills/gemini-cli)",
+      "Read(//c/Users/gagep/.claude/skills/**)",
+      "Bash(playwright-cli install:*)",
+      "Bash(gemini:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

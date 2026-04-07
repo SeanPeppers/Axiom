@@ -1,121 +1,141 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useRef } from 'react'
+import { useGameState } from './hooks/useGameState'
+import { GameHeader } from './components/GameHeader'
+import { Grid } from './components/Grid'
+import { DraggableToken } from './components/DraggableToken'
+import { ConstraintSidebar } from './components/ConstraintSidebar'
+import { CompileButton } from './components/CompileButton'
+import { ResultCard } from './components/ResultCard'
+import { ENTITIES } from './data/entities'
+import { CELL_SIZE, CONTAINER_WIDTH, CONTAINER_HEIGHT } from './config'
 
-function App() {
-  const [count, setCount] = useState(0)
+const COL_LABELS = ['A', 'B', 'C', 'D']
+const ROW_LABELS = ['1', '2', '3', '4']
+const LABEL_W = 24  // px – width of the row-label gutter
+
+export default function App() {
+  const {
+    puzzle, dayNumber,
+    placements, constraintResults,
+    attempts, gameStatus,
+    allPlaced, compilesUsed, compilesLeft,
+    hoveredCell, setHoveredCell,
+    showSolution, setShowSolution,
+    placeToken, removeToken, compile, resetPuzzle,
+  } = useGameState()
+
+  /**
+   * containerRef anchors token absolute-positioning.
+   * It is placed AFTER the row-labels gutter so its (0,0) aligns
+   * exactly with grid cell (row=0, col=0) – fixing the snap offset bug.
+   */
+  const containerRef = useRef(null)
+
+  // Show solution overlay: merge real placements with solution
+  const displayPlacements = showSolution ? puzzle.solution : placements
+  const isLocked = gameStatus !== 'playing'
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ minHeight: '100vh', background: '#060b18', display: 'flex', flexDirection: 'column' }}>
+      <GameHeader
+        puzzle={puzzle}
+        dayNumber={dayNumber}
+        gameStatus={gameStatus}
+        onReset={resetPuzzle}
+      />
 
-      <div className="ticks"></div>
+      <main style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        gap: 40,
+        padding: '36px 24px',
+      }}>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {/* ── Left column: board ───────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          {/* Column labels (outside containerRef) */}
+          <div style={{ display: 'flex', paddingLeft: LABEL_W, marginBottom: 5 }}>
+            {COL_LABELS.map((lbl) => (
+              <div key={lbl} style={{ width: CELL_SIZE, textAlign: 'center', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(148,163,184,0.4)', letterSpacing: '0.1em' }}>
+                {lbl}
+              </div>
+            ))}
+          </div>
+
+          {/* Row labels + token container */}
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+
+            {/* Row labels (outside containerRef) */}
+            <div style={{ display: 'flex', flexDirection: 'column', width: LABEL_W, flexShrink: 0 }}>
+              {ROW_LABELS.map((lbl) => (
+                <div key={lbl} style={{ height: CELL_SIZE, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 7, fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(148,163,184,0.4)', letterSpacing: '0.1em' }}>
+                  {lbl}
+                </div>
+              ))}
+            </div>
+
+            {/*
+              containerRef – starts exactly at grid cell (0,0).
+              All token x/y values are relative to this origin.
+              DO NOT put labels, margin, or padding inside this div.
+            */}
+            <div
+              ref={containerRef}
+              style={{ position: 'relative', width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT }}
+            >
+              {/* Grid background + hand dock */}
+              <Grid placements={displayPlacements} hoveredCell={isLocked ? null : hoveredCell} />
+
+              {/* Draggable token layer */}
+              {ENTITIES.map((entity, i) => (
+                <DraggableToken
+                  key={entity.id}
+                  entity={entity}
+                  handIndex={i}
+                  placement={displayPlacements[entity.id]}
+                  containerRef={containerRef}
+                  onPlace={placeToken}
+                  onRemove={removeToken}
+                  onHoverCell={setHoveredCell}
+                  disabled={isLocked || showSolution}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Compile button / result card */}
+          <div style={{ paddingLeft: LABEL_W, marginTop: 4 }}>
+            {gameStatus === 'playing' ? (
+              <CompileButton
+                allPlaced={allPlaced}
+                compilesUsed={compilesUsed}
+                compilesLeft={compilesLeft}
+                gameStatus={gameStatus}
+                onCompile={compile}
+              />
+            ) : (
+              <ResultCard
+                dayNumber={dayNumber}
+                attempts={attempts}
+                gameStatus={gameStatus}
+                onReset={resetPuzzle}
+                onShowSolution={() => setShowSolution(true)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* ── Right column: constraints ────────────────── */}
+        <ConstraintSidebar
+          constraints={constraintResults}
+          puzzle={puzzle}
+          compilesUsed={compilesUsed}
+          gameStatus={gameStatus}
+        />
+      </main>
+    </div>
   )
 }
-
-export default App
