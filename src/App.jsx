@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useGameState } from './hooks/useGameState'
 import { GameHeader } from './components/GameHeader'
 import { Grid } from './components/Grid'
@@ -9,14 +9,14 @@ import { ResultCard } from './components/ResultCard'
 import { ENTITIES } from './data/entities'
 import { CELL_SIZE, CONTAINER_WIDTH, CONTAINER_HEIGHT } from './config'
 
-const COL_LABELS = ['A', 'B', 'C', 'D']
-const ROW_LABELS = ['1', '2', '3', '4']
+const COL_LABELS = ['A', 'B', 'C', 'D', 'E']
+const ROW_LABELS = ['1', '2', '3', '4', '5']
 const LABEL_W = 24  // px – width of the row-label gutter
 
 export default function App() {
   const {
     puzzle, dayNumber,
-    placements, constraintResults,
+    placements, lastCompileResults,
     attempts, gameStatus,
     allPlaced, compilesUsed, compilesLeft,
     hoveredCell, setHoveredCell,
@@ -24,16 +24,22 @@ export default function App() {
     placeToken, removeToken, compile, resetPuzzle,
   } = useGameState()
 
-  /**
-   * containerRef anchors token absolute-positioning.
-   * It is placed AFTER the row-labels gutter so its (0,0) aligns
-   * exactly with grid cell (row=0, col=0) – fixing the snap offset bug.
-   */
   const containerRef = useRef(null)
+  const [hoveredEntityId, setHoveredEntityId] = useState(null)
 
-  // Show solution overlay: merge real placements with solution
   const displayPlacements = showSolution ? puzzle.solution : placements
   const isLocked = gameStatus !== 'playing'
+
+  /**
+   * What the sidebar displays:
+   *  - Before first compile → all 'evaluating' (completely hidden)
+   *  - After any compile    → results from that compile attempt
+   *  - Solution revealed    → all 'satisfied' (solution is always correct)
+   */
+  const sidebarConstraints = showSolution
+    ? puzzle.constraints.map((c) => ({ ...c, status: 'satisfied' }))
+    : lastCompileResults
+    ?? puzzle.constraints.map((c) => ({ ...c, status: 'evaluating' }))
 
   return (
     <div style={{ minHeight: '100vh', background: '#060b18', display: 'flex', flexDirection: 'column' }}>
@@ -100,6 +106,7 @@ export default function App() {
                   onPlace={placeToken}
                   onRemove={removeToken}
                   onHoverCell={setHoveredCell}
+                  onHoverEntity={setHoveredEntityId}
                   disabled={isLocked || showSolution}
                 />
               ))}
@@ -130,10 +137,11 @@ export default function App() {
 
         {/* ── Right column: constraints ────────────────── */}
         <ConstraintSidebar
-          constraints={constraintResults}
+          constraints={sidebarConstraints}
+          revealKey={attempts.length}
           puzzle={puzzle}
-          compilesUsed={compilesUsed}
           gameStatus={gameStatus}
+          hoveredEntityId={hoveredEntityId}
         />
       </main>
     </div>

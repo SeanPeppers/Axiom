@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, useMotionValue, animate } from 'framer-motion'
 import { TokenShape } from './TokenShape'
-import { CELL_SIZE, TOKEN_SIZE, GRID_WIDTH, GRID_HEIGHT, SNAP_SPRING, getCellTopLeft, getHandTopLeft } from '../config'
+import { CELL_SIZE, TOKEN_SIZE, GRID_WIDTH, GRID_HEIGHT, GRID_ROWS, GRID_COLS, SNAP_SPRING, getCellTopLeft, getHandTopLeft } from '../config'
 
 export function DraggableToken({
   entity,
@@ -11,6 +11,7 @@ export function DraggableToken({
   onPlace,
   onRemove,
   onHoverCell,
+  onHoverEntity,
   disabled,   // true when game is won/lost
 }) {
   const [isDragging, setIsDragging] = useState(false)
@@ -43,8 +44,8 @@ export function DraggableToken({
     const relY = info.point.y - rect.top
     if (relX >= 0 && relX < GRID_WIDTH && relY >= 0 && relY < GRID_HEIGHT) {
       return {
-        col: Math.min(Math.floor(relX / CELL_SIZE), 3),
-        row: Math.min(Math.floor(relY / CELL_SIZE), 3),
+        col: Math.min(Math.floor(relX / CELL_SIZE), GRID_COLS - 1),
+        row: Math.min(Math.floor(relY / CELL_SIZE), GRID_ROWS - 1),
       }
     }
     return null
@@ -88,6 +89,8 @@ export function DraggableToken({
       dragMomentum={false}
       whileHover={!disabled && !isDragging ? { scale: 1.07 } : {}}
       whileDrag={!disabled ? { scale: 1.18 } : {}}
+      onHoverStart={() => onHoverEntity?.(entity.id)}
+      onHoverEnd={() => onHoverEntity?.(null)}
       onDragStart={() => !disabled && setIsDragging(true)}
       onDrag={!disabled ? handleDrag : undefined}
       onDragEnd={!disabled ? handleDragEnd : undefined}

@@ -51,6 +51,19 @@ export const ENTITIES = [
       dimText: 'rgba(252,165,165,0.35)',
     },
   },
+  {
+    id: 'proxy',
+    label: 'Proxy',
+    abbr: 'PX',
+    shape: 'diamond',
+    colors: {
+      fill: '#083344',
+      stroke: '#06b6d4',
+      glow: '#06b6d4',
+      text: '#67e8f9',
+      dimText: 'rgba(103,232,249,0.35)',
+    },
+  },
 ]
 
 export const getEntity = (id) => ENTITIES.find((e) => e.id === id)

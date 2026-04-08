@@ -2,7 +2,7 @@
  * Pure presentational component – renders the correct SVG shape for an entity.
  * `size` is both width and height of the bounding box.
  */
-export function TokenShape({ entity, size = 70, dimmed = false }) {
+export function TokenShape({ entity, size = 64, dimmed = false }) {
   const { shape, colors, abbr } = entity
   const s = size
   const cx = s / 2
@@ -108,6 +108,36 @@ export function TokenShape({ entity, size = 70, dimmed = false }) {
         />
         <text
           x={cx} y={cy + s * 0.1}
+          textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text}
+          fontSize={s * 0.22}
+          fontFamily="'JetBrains Mono', monospace"
+          fontWeight="500"
+        >
+          {abbr}
+        </text>
+      </svg>
+    )
+  }
+
+  if (shape === 'diamond') {
+    const pad = s * 0.08
+    const pts = [
+      `${cx},${pad}`,
+      `${s - pad},${cy}`,
+      `${cx},${s - pad}`,
+      `${pad},${cy}`,
+    ].join(' ')
+    return (
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
+        <polygon
+          points={pts}
+          fill={colors.fill}
+          stroke={colors.stroke}
+          strokeWidth={strokeWidth}
+        />
+        <text
+          x={cx} y={cy + 1}
           textAnchor="middle" dominantBaseline="middle"
           fill={colors.text}
           fontSize={s * 0.22}

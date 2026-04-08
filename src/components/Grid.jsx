@@ -1,5 +1,5 @@
 /**
- * Grid.jsx – renders ONLY the 4×4 cell matrix and the hand-dock below.
+ * Grid.jsx – renders ONLY the 5×5 cell matrix and the hand-dock below.
  * Column/row labels are rendered OUTSIDE this component (in App.jsx) so
  * the parent containerRef starts exactly at cell (0,0) – critical for
  * correct drag-snap coordinate math.
@@ -141,7 +141,7 @@ function GridCell({ row, col, occupant, isHovered }) {
           color: 'rgba(148,163,184,0.1)',
           userSelect: 'none', pointerEvents: 'none',
         }}>
-          {['A','B','C','D'][col]}{row + 1}
+          {['A','B','C','D','E'][col]}{row + 1}
         </span>
       )}
 
