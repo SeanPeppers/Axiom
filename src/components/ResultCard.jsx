@@ -1,11 +1,16 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Share2, RotateCcw, Eye, Check } from 'lucide-react'
 import { buildShareText, copyToClipboard } from '../utils/share'
 
 export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSolution, isRandom }) {
   const [copied, setCopied] = useState(false)
+  const cardRef = useRef(null)
   const won = gameStatus === 'won'
+
+  useEffect(() => {
+    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [])
 
   const shareText = buildShareText(dayNumber, attempts, won, isRandom)
 
@@ -19,6 +24,7 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
 
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 16, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 360, damping: 28, delay: 0.1 }}
