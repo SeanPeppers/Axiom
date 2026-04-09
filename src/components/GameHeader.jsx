@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { RotateCcw, Terminal } from 'lucide-react'
+import { RotateCcw, Terminal, Shuffle } from 'lucide-react'
 
 const DIFF_COLORS = {
   BASIC:    { bg: 'rgba(99,102,241,0.1)',  border: 'rgba(99,102,241,0.28)', text: '#a5b4fc' },
@@ -7,8 +7,9 @@ const DIFF_COLORS = {
   ADVANCED: { bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.28)',  text: '#fca5a5' },
 }
 
-export function GameHeader({ puzzle, dayNumber, gameStatus, onReset }) {
-  const diff = DIFF_COLORS[puzzle.difficulty] ?? DIFF_COLORS.BASIC
+export function GameHeader({ puzzle, dayNumber, gameStatus, mode, onModeChange, onNewRandom, onReset }) {
+  const diff    = DIFF_COLORS[puzzle.difficulty] ?? DIFF_COLORS.BASIC
+  const isDaily = mode === 'daily'
 
   return (
     <header style={{
@@ -32,10 +33,16 @@ export function GameHeader({ puzzle, dayNumber, gameStatus, onReset }) {
 
         <div style={{ width: 1, height: 18, background: 'rgba(99,102,241,0.2)' }} />
 
-        {/* Daily number */}
-        <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(148,163,184,0.5)', letterSpacing: '0.1em' }}>
-          #{dayNumber}
-        </span>
+        {/* Daily number / RANDOM label */}
+        {isDaily ? (
+          <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(148,163,184,0.5)', letterSpacing: '0.1em' }}>
+            #{dayNumber}
+          </span>
+        ) : (
+          <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(245,158,11,0.6)', letterSpacing: '0.1em' }}>
+            RAND
+          </span>
+        )}
 
         {/* Puzzle title */}
         <span style={{ fontSize: 13, color: 'rgba(226,232,240,0.85)', fontWeight: 500 }}>
@@ -83,6 +90,47 @@ export function GameHeader({ puzzle, dayNumber, gameStatus, onReset }) {
         </AnimatePresence>
 
         <div style={{ flex: 1 }} />
+
+        {/* Mode toggle */}
+        <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(99,102,241,0.22)' }}>
+          {['daily', 'random'].map((m) => (
+            <button
+              key={m}
+              onClick={() => onModeChange(m)}
+              style={{
+                padding: '4px 10px',
+                background: mode === m ? 'rgba(99,102,241,0.18)' : 'transparent',
+                color: mode === m ? '#a5b4fc' : 'rgba(148,163,184,0.45)',
+                border: 'none', cursor: 'pointer',
+                fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: '0.12em', fontWeight: 600,
+                transition: 'all 0.15s',
+              }}
+            >
+              {m === 'daily' ? 'DAILY' : 'RANDOM'}
+            </button>
+          ))}
+        </div>
+
+        {/* New Random button – only in random mode */}
+        {!isDaily && (
+          <button
+            onClick={onNewRandom}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '5px 11px', borderRadius: 6,
+              border: '1px solid rgba(245,158,11,0.28)', background: 'rgba(245,158,11,0.06)',
+              color: 'rgba(253,211,77,0.75)', cursor: 'pointer',
+              fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.14)'; e.currentTarget.style.color = '#fcd34d' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245,158,11,0.06)'; e.currentTarget.style.color = 'rgba(253,211,77,0.75)' }}
+          >
+            <Shuffle size={11} />
+            NEW
+          </button>
+        )}
 
         {/* Reset */}
         <button

@@ -1,15 +1,18 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Share2, RotateCcw, Eye, Check } from 'lucide-react'
 import { buildShareText, copyToClipboard } from '../utils/share'
 
-export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSolution }) {
-  const [copied, setCopied] = useState(false)
+export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSolution, isRandom }) {
+  const [copied,    setCopied]    = useState(false)
+  const [showText,  setShowText]  = useState(false)
   const won = gameStatus === 'won'
 
+  const shareText = buildShareText(dayNumber, attempts, won, isRandom)
+
   const handleShare = async () => {
-    const text = buildShareText(dayNumber, attempts, won)
-    const ok = await copyToClipboard(text)
+    const ok = await copyToClipboard(shareText)
+    setShowText(true)
     if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
@@ -46,7 +49,9 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
           {won ? 'All axioms satisfied' : 'System corrupted'}
         </div>
         <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: won ? 'rgba(110,231,183,0.55)' : 'rgba(252,165,165,0.5)', marginTop: 3, letterSpacing: '0.1em' }}>
-          {won ? `AXIOM #${dayNumber} · Compiled in ${attempts.length}/3` : `AXIOM #${dayNumber} · 0 compiles remaining`}
+          {isRandom
+            ? (won ? `AXIOM RANDOM · ${attempts.length}/3 compiles` : 'AXIOM RANDOM · 0/3 remaining')
+            : (won ? `AXIOM #${dayNumber} · Compiled in ${attempts.length}/3` : `AXIOM #${dayNumber} · 0 compiles remaining`)}
         </div>
       </div>
 
@@ -62,9 +67,8 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
                 {r.status === 'satisfied' ? '🟩' : '🟥'}
               </span>
             ))}
-            {attempt.correct && (
-              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", color: '#6ee7b7', marginLeft: 4 }}>✓ PASS</span>
-            )}
+            {attempt.routingPassed === true  && <span style={{ fontSize: 12, marginLeft: 4 }}>🔗</span>}
+            {attempt.routingPassed === false && <span style={{ fontSize: 12, marginLeft: 4 }}>🔴</span>}
           </div>
         ))}
       </div>
@@ -91,6 +95,43 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
           RETRY
         </button>
       </div>
+
+      {/* Share text preview — appears when SHARE is clicked */}
+      <AnimatePresence>
+        {showText && (
+          <motion.div
+            key="share-preview"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ marginTop: 14, overflow: 'hidden' }}
+          >
+            <div style={{
+              fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
+              color: 'rgba(148,163,184,0.4)', letterSpacing: '0.14em', marginBottom: 5,
+            }}>
+              {copied ? '✓ COPIED TO CLIPBOARD' : 'SHARE TEXT (copy below)'}
+            </div>
+            <pre style={{
+              margin: 0,
+              padding: '10px 12px',
+              borderRadius: 6,
+              background: 'rgba(0,0,0,0.3)',
+              border: '1px solid rgba(99,102,241,0.15)',
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: 'rgba(226,232,240,0.85)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              userSelect: 'all',
+              cursor: 'text',
+            }}>
+              {shareText}
+            </pre>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { useGameState } from './hooks/useGameState'
+import { getDailyInfo, getDailyStorageKey } from './hooks/useDaily'
 import { GameHeader } from './components/GameHeader'
 import { Grid } from './components/Grid'
 import { DraggableToken } from './components/DraggableToken'
@@ -8,15 +9,53 @@ import { CompileButton } from './components/CompileButton'
 import { ResultCard } from './components/ResultCard'
 import { SimulationLayer } from './components/SimulationLayer'
 import { ENTITIES } from './data/entities'
+import { PUZZLES } from './data/puzzles'
+import { generatePuzzle } from './engine/puzzleGenerator'
 import { CELL_SIZE, CONTAINER_WIDTH, CONTAINER_HEIGHT } from './config'
 
 const COL_LABELS = ['A', 'B', 'C', 'D', 'E']
 const ROW_LABELS = ['1', '2', '3', '4', '5']
 const LABEL_W = 24  // px – width of the row-label gutter
 
+// ── Outer shell: owns mode and random seed ────────────────────────────────────
+
 export default function App() {
+  const [mode,       setMode]       = useState('daily')
+  const [randomSeed, setRandomSeed] = useState(() => (Date.now() & 0x7fffffff) || 1)
+
+  const { dayNumber, puzzleIndex, dateString } = getDailyInfo()
+  const dailyPuzzle   = PUZZLES[puzzleIndex]
+  const dailyKey      = getDailyStorageKey(dateString)
+
+  // Derive puzzle and storage key for the active session
+  const activePuzzle     = mode === 'daily' ? dailyPuzzle : (generatePuzzle(randomSeed) ?? dailyPuzzle)
+  const activeStorageKey = mode === 'daily' ? dailyKey : null  // random mode: no persistence
+  const activeDayNumber  = mode === 'daily' ? dayNumber : randomSeed
+
+  // When mode or randomSeed changes, remount GameSession by changing the key
+  const sessionKey = mode === 'daily' ? `daily-${dateString}` : `random-${randomSeed}`
+
+  const handleNewRandom = () => setRandomSeed((Date.now() & 0x7fffffff) || 1)
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#060b18', display: 'flex', flexDirection: 'column' }}>
+      <GameSession
+        key={sessionKey}
+        puzzle={activePuzzle}
+        storageKey={activeStorageKey}
+        dayNumber={activeDayNumber}
+        mode={mode}
+        onModeChange={setMode}
+        onNewRandom={handleNewRandom}
+      />
+    </div>
+  )
+}
+
+// ── Inner session: owns game state for one puzzle run ─────────────────────────
+
+function GameSession({ puzzle, storageKey, dayNumber, mode, onModeChange, onNewRandom }) {
   const {
-    puzzle, dayNumber,
     placements, lastCompileResults,
     simulationResult,
     attempts, gameStatus,
@@ -24,7 +63,7 @@ export default function App() {
     hoveredCell, setHoveredCell,
     showSolution, setShowSolution,
     placeToken, removeToken, compile, finishSimulation, resetPuzzle,
-  } = useGameState()
+  } = useGameState({ puzzle, storageKey, dayNumber })
 
   const containerRef = useRef(null)
   const [hoveredEntityId, setHoveredEntityId] = useState(null)
@@ -38,11 +77,14 @@ export default function App() {
     ?? puzzle.constraints.map((c) => ({ ...c, status: 'evaluating' }))
 
   return (
-    <div style={{ minHeight: '100vh', background: '#060b18', display: 'flex', flexDirection: 'column' }}>
+    <>
       <GameHeader
         puzzle={puzzle}
         dayNumber={dayNumber}
         gameStatus={gameStatus}
+        mode={mode}
+        onModeChange={onModeChange}
+        onNewRandom={onNewRandom}
         onReset={resetPuzzle}
       />
 
@@ -58,7 +100,7 @@ export default function App() {
         {/* ── Left column: board ───────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-          {/* Column labels (outside containerRef) */}
+          {/* Column labels */}
           <div style={{ display: 'flex', paddingLeft: LABEL_W, marginBottom: 5 }}>
             {COL_LABELS.map((lbl) => (
               <div key={lbl} style={{ width: CELL_SIZE, textAlign: 'center', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(148,163,184,0.4)', letterSpacing: '0.1em' }}>
@@ -70,7 +112,7 @@ export default function App() {
           {/* Row labels + token container */}
           <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
-            {/* Row labels (outside containerRef) */}
+            {/* Row labels */}
             <div style={{ display: 'flex', flexDirection: 'column', width: LABEL_W, flexShrink: 0 }}>
               {ROW_LABELS.map((lbl) => (
                 <div key={lbl} style={{ height: CELL_SIZE, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 7, fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: 'rgba(148,163,184,0.4)', letterSpacing: '0.1em' }}>
@@ -107,7 +149,7 @@ export default function App() {
                 />
               ))}
 
-              {/* Simulation overlay – only visible during/after routing phase */}
+              {/* Simulation overlay */}
               {gameStatus === 'simulating' && simulationResult && (
                 <SimulationLayer
                   simulation={simulationResult}
@@ -117,7 +159,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Routing simulation legend – always visible */}
+          {/* Routing simulation legend */}
           <div style={{
             paddingLeft: LABEL_W, marginTop: 16,
             display: 'flex', flexDirection: 'column', gap: 6,
@@ -134,7 +176,6 @@ export default function App() {
               background: 'rgba(6,11,24,0.6)',
               display: 'flex', flexDirection: 'column', gap: 8,
             }}>
-              {/* Two-line goal */}
               <div style={{ display: 'flex', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1 }}>
                   <div style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(99,102,241,0.7)', flexShrink: 0 }} />
@@ -149,7 +190,6 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              {/* Blockers row */}
               <div style={{
                 paddingTop: 6, borderTop: '1px solid rgba(99,102,241,0.08)',
                 display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
@@ -179,7 +219,6 @@ export default function App() {
           <div style={{ paddingLeft: LABEL_W, marginTop: 10 }}>
             {gameStatus === 'playing' ? (
               <>
-                {/* Routing-failed warning – shown after a sim failure until next compile */}
                 {simulationResult && !simulationResult.success && (
                   <div style={{
                     marginBottom: 8, padding: '8px 12px', borderRadius: 6,
@@ -210,15 +249,12 @@ export default function App() {
                 background: 'rgba(99,102,241,0.05)',
                 display: 'flex', flexDirection: 'column', gap: 8,
               }}>
-                {/* Header */}
                 <span style={{
                   fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
                   color: 'rgba(99,102,241,0.8)', letterSpacing: '0.18em',
                 }}>
                   ◈ ROUTING SIMULATION
                 </span>
-
-                {/* Legend */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                     <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(99,102,241,0.55)', flexShrink: 0 }} />
@@ -233,8 +269,6 @@ export default function App() {
                     </span>
                   </div>
                 </div>
-
-                {/* Goal */}
                 <p style={{
                   margin: 0, fontSize: 10, lineHeight: 1.5,
                   color: 'rgba(148,163,184,0.55)',
@@ -251,6 +285,7 @@ export default function App() {
                 gameStatus={gameStatus}
                 onReset={resetPuzzle}
                 onShowSolution={() => setShowSolution(true)}
+                isRandom={mode === 'random'}
               />
             )}
           </div>
@@ -265,6 +300,6 @@ export default function App() {
           hoveredEntityId={hoveredEntityId}
         />
       </main>
-    </div>
+    </>
   )
 }

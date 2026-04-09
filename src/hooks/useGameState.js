@@ -1,27 +1,29 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { ENTITIES } from '../data/entities'
-import { PUZZLES } from '../data/puzzles'
 import { evaluatePuzzle } from '../engine/logicEngine'
 import { runSimulation } from '../engine/simulationEngine'
-import { getDailyInfo, getDailyStorageKey } from './useDaily'
 
-const { dayNumber, puzzleIndex, dateString } = getDailyInfo()
-const STORAGE_KEY = getDailyStorageKey(dateString)
 const EMPTY = Object.fromEntries(ENTITIES.map((e) => [e.id, null]))
 const MAX_COMPILES = 3
 
-function loadSaved() {
+function loadSaved(storageKey) {
+  if (!storageKey) return null
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(storageKey)
     return raw ? JSON.parse(raw) : null
   } catch { return null }
 }
 
-export function useGameState() {
-  const puzzle = PUZZLES[puzzleIndex]
-  const saved  = loadSaved()
+/**
+ * @param {{ puzzle: object, storageKey: string|null, dayNumber: number }} params
+ *   puzzle      – the active puzzle object
+ *   storageKey  – localStorage key (null = don't persist, e.g. random mode)
+ *   dayNumber   – displayed in the result card (#42, etc.)
+ */
+export function useGameState({ puzzle, storageKey, dayNumber }) {
+  const saved = loadSaved(storageKey)
 
-  // 'simulating' is a transient state — never persist it
+  // 'simulating' is transient — never restore it
   const savedStatus = saved?.gameStatus
   const initStatus  = (savedStatus === 'simulating' ? 'playing' : savedStatus) ?? 'playing'
 
@@ -33,12 +35,13 @@ export function useGameState() {
   const [hoveredCell,        setHoveredCell]        = useState(null)
   const [showSolution,       setShowSolution]       = useState(false)
 
+  // Persist to localStorage (skip transient state, skip when no key)
   useEffect(() => {
-    if (gameStatus === 'simulating') return  // don't persist transient state
+    if (gameStatus === 'simulating' || !storageKey) return
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ placements, attempts, gameStatus, lastCompileResults }))
+      localStorage.setItem(storageKey, JSON.stringify({ placements, attempts, gameStatus, lastCompileResults }))
     } catch { /* quota / private mode */ }
-  }, [placements, attempts, gameStatus, lastCompileResults])
+  }, [placements, attempts, gameStatus, lastCompileResults, storageKey])
 
   const allPlaced = useMemo(() => Object.values(placements).every(Boolean), [placements])
 
@@ -59,25 +62,35 @@ export function useGameState() {
     setPlacements((prev) => ({ ...prev, [entityId]: null }))
   }, [gameStatus])
 
-  /** COMPILE — evaluate axioms, then if all pass, trigger simulation. */
+  /**
+   * COMPILE — evaluate axioms; if all pass, run routing simulation.
+   * Routing result is computed synchronously and stored in the attempt record
+   * (the animation in SimulationLayer is purely cosmetic).
+   */
   const compile = useCallback(() => {
     if (gameStatus !== 'playing') return 'locked'
     if (!allPlaced) return 'not-ready'
 
-    setSimulationResult(null)   // clear any previous sim result on new compile
+    setSimulationResult(null)  // clear previous sim result for clean UI
+
     const results = evaluatePuzzle(puzzle, placements)
     const correct = results.every((r) => r.status === 'satisfied')
-    const newAttempts = [...attempts, { results, correct }]
 
+    let sim          = null
+    let routingPassed = null  // null = constraints failed, didn't run
+
+    if (correct) {
+      sim          = runSimulation(placements)
+      routingPassed = sim?.success ?? false
+      setSimulationResult(sim)
+      setGameStatus('simulating')
+    }
+
+    const newAttempts = [...attempts, { results, correct, routingPassed }]
     setLastCompileResults(results)
     setAttempts(newAttempts)
 
-    if (correct) {
-      const sim = runSimulation(placements)
-      setSimulationResult(sim)
-      setGameStatus('simulating')
-      return 'simulating'
-    }
+    if (correct) return 'simulating'
 
     if (newAttempts.length >= MAX_COMPILES) { setGameStatus('lost'); return 'lost' }
     return 'failed'
@@ -85,18 +98,17 @@ export function useGameState() {
 
   /**
    * Called by SimulationLayer when its animation completes.
-   * Transitions: simulating → won  (if sim succeeded)
-   *              simulating → playing / lost  (if sim failed)
+   * Transitions: simulating → won  (sim passed)
+   *              simulating → playing / lost  (sim failed)
    */
   const finishSimulation = useCallback(() => {
     if (simulationResult?.success) {
       setGameStatus('won')
     } else {
-      // Simulation failed — the attempt was already counted in compile()
       if (attempts.length >= MAX_COMPILES) {
         setGameStatus('lost')
       } else {
-        // Keep simulationResult so the UI can show "routing failed" warning
+        // Keep simulationResult so the UI can show the "routing failed" warning
         setGameStatus('playing')
       }
     }
@@ -110,8 +122,10 @@ export function useGameState() {
     setSimulationResult(null)
     setHoveredCell(null)
     setShowSolution(false)
-    try { localStorage.removeItem(STORAGE_KEY) } catch { /* */ }
-  }, [])
+    if (storageKey) {
+      try { localStorage.removeItem(storageKey) } catch { /* */ }
+    }
+  }, [storageKey])
 
   return {
     puzzle, dayNumber,
