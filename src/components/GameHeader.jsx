@@ -138,23 +138,25 @@ export function GameHeader({ puzzle, dayNumber, gameStatus, mode, onModeChange, 
           </button>
         )}
 
-        {/* Reset */}
-        <button
-          onClick={onReset}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: isMobile ? '5px 8px' : '5px 12px', borderRadius: 6,
-            border: '1px solid rgba(99,102,241,0.2)', background: 'rgba(99,102,241,0.06)',
-            color: 'rgba(165,180,252,0.7)', cursor: 'pointer',
-            fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em',
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.14)'; e.currentTarget.style.color = '#a5b4fc' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; e.currentTarget.style.color = 'rgba(165,180,252,0.7)' }}
-        >
-          <RotateCcw size={11} />
-          {!isMobile && 'RESET'}
-        </button>
+        {/* Reset — hidden when game is over (ResultCard has its own RETRY) */}
+        {gameStatus === 'playing' && (
+          <button
+            onClick={onReset}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: isMobile ? '5px 8px' : '5px 12px', borderRadius: 6,
+              border: '1px solid rgba(99,102,241,0.2)', background: 'rgba(99,102,241,0.06)',
+              color: 'rgba(165,180,252,0.7)', cursor: 'pointer',
+              fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.14)'; e.currentTarget.style.color = '#a5b4fc' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; e.currentTarget.style.color = 'rgba(165,180,252,0.7)' }}
+          >
+            <RotateCcw size={11} />
+            {!isMobile && 'RESET'}
+          </button>
+        )}
       </div>
     </header>
   )

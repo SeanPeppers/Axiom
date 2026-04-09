@@ -9,7 +9,10 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
   const won = gameStatus === 'won'
 
   useEffect(() => {
-    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    const t = setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 250)
+    return () => clearTimeout(t)
   }, [])
 
   const shareText = buildShareText(dayNumber, attempts, won, isRandom)
@@ -77,31 +80,8 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
         ))}
       </div>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button
-          onClick={handleShare}
-          style={btnStyle(won ? '#10b981' : '#ef4444', copied)}
-        >
-          {copied ? <Check size={12} /> : <Share2 size={12} />}
-          {copied ? 'COPIED!' : 'SHARE'}
-        </button>
-
-        {!won && (
-          <button onClick={onShowSolution} style={btnStyle('#6366f1', false)}>
-            <Eye size={12} />
-            SOLUTION
-          </button>
-        )}
-
-        <button onClick={onReset} style={btnStyle('#64748b', false)}>
-          <RotateCcw size={12} />
-          RETRY
-        </button>
-      </div>
-
-      {/* Share text — always visible */}
-      <div style={{ marginTop: 14 }}>
+      {/* Share text */}
+      <div style={{ marginBottom: 14 }}>
         <div style={{
           fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
           color: 'rgba(148,163,184,0.4)', letterSpacing: '0.14em', marginBottom: 5,
@@ -124,6 +104,29 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
         }}>
           {shareText}
         </pre>
+      </div>
+
+      {/* Actions */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          onClick={handleShare}
+          style={btnStyle(won ? '#10b981' : '#ef4444', copied)}
+        >
+          {copied ? <Check size={12} /> : <Share2 size={12} />}
+          {copied ? 'COPIED!' : 'SHARE'}
+        </button>
+
+        {!won && (
+          <button onClick={onShowSolution} style={btnStyle('#6366f1', false)}>
+            <Eye size={12} />
+            SOLUTION
+          </button>
+        )}
+
+        <button onClick={onReset} style={btnStyle('#64748b', false)}>
+          <RotateCcw size={12} />
+          RETRY
+        </button>
       </div>
     </motion.div>
   )
