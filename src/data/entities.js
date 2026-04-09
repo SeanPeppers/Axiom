@@ -64,6 +64,19 @@ export const ENTITIES = [
       dimText: 'rgba(103,232,249,0.35)',
     },
   },
+  {
+    id: 'sentinel',
+    label: 'Sentinel',
+    abbr: 'ST',
+    shape: 'pentagon',
+    colors: {
+      fill: '#422006',
+      stroke: '#f59e0b',
+      glow: '#f59e0b',
+      text: '#fde68a',
+      dimText: 'rgba(253,230,138,0.35)',
+    },
+  },
 ]
 
 export const getEntity = (id) => ENTITIES.find((e) => e.id === id)

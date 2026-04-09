@@ -9,6 +9,10 @@ export const HAND_ROW_TOP = GRID_HEIGHT + HAND_GAP  // 516
 export const CONTAINER_HEIGHT = HAND_ROW_TOP + CELL_SIZE + 4  // 620
 export const CONTAINER_WIDTH = GRID_WIDTH  // 500
 
+// 6 entities in hand: each slot narrower than a grid cell
+export const NUM_ENTITIES = 6
+export const HAND_SLOT_SIZE = Math.floor(GRID_WIDTH / NUM_ENTITIES) // 83
+
 // Derive top-left position from a grid cell to place the token
 export const getCellTopLeft = (row, col) => ({
   x: col * CELL_SIZE + (CELL_SIZE - TOKEN_SIZE) / 2,
@@ -17,8 +21,8 @@ export const getCellTopLeft = (row, col) => ({
 
 // Derive top-left position for a hand slot
 export const getHandTopLeft = (index) => ({
-  x: index * CELL_SIZE + (CELL_SIZE - TOKEN_SIZE) / 2,
-  y: HAND_ROW_TOP + (CELL_SIZE - TOKEN_SIZE) / 2,
+  x: index * HAND_SLOT_SIZE + Math.floor((HAND_SLOT_SIZE - TOKEN_SIZE) / 2),
+  y: HAND_ROW_TOP + Math.floor((HAND_SLOT_SIZE - TOKEN_SIZE) / 2),
 })
 
 export const SNAP_SPRING = { type: 'spring', stiffness: 700, damping: 45 }

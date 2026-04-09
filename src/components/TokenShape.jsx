@@ -18,21 +18,11 @@ export function TokenShape({ entity, size = 64, dimmed = false }) {
     const w = s - pad * 2
     return (
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
-        <rect
-          x={pad} y={pad} width={w} height={w}
-          rx={s * 0.06}
-          fill={colors.fill}
-          stroke={colors.stroke}
-          strokeWidth={strokeWidth}
-        />
-        <text
-          x={cx} y={cy + 1}
-          textAnchor="middle" dominantBaseline="middle"
-          fill={colors.text}
-          fontSize={s * 0.24}
-          fontFamily="'JetBrains Mono', monospace"
-          fontWeight="500"
-        >
+        <rect x={pad} y={pad} width={w} height={w} rx={s * 0.06}
+          fill={colors.fill} stroke={colors.stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text} fontSize={s * 0.24}
+          fontFamily="'JetBrains Mono', monospace" fontWeight="500">
           {abbr}
         </text>
       </svg>
@@ -43,20 +33,11 @@ export function TokenShape({ entity, size = 64, dimmed = false }) {
     const r = s * 0.42
     return (
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
-        <circle
-          cx={cx} cy={cy} r={r}
-          fill={colors.fill}
-          stroke={colors.stroke}
-          strokeWidth={strokeWidth}
-        />
-        <text
-          x={cx} y={cy + 1}
-          textAnchor="middle" dominantBaseline="middle"
-          fill={colors.text}
-          fontSize={s * 0.24}
-          fontFamily="'JetBrains Mono', monospace"
-          fontWeight="500"
-        >
+        <circle cx={cx} cy={cy} r={r}
+          fill={colors.fill} stroke={colors.stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text} fontSize={s * 0.24}
+          fontFamily="'JetBrains Mono', monospace" fontWeight="500">
           {abbr}
         </text>
       </svg>
@@ -71,20 +52,10 @@ export function TokenShape({ entity, size = 64, dimmed = false }) {
     }).join(' ')
     return (
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
-        <polygon
-          points={pts}
-          fill={colors.fill}
-          stroke={colors.stroke}
-          strokeWidth={strokeWidth}
-        />
-        <text
-          x={cx} y={cy + 1}
-          textAnchor="middle" dominantBaseline="middle"
-          fill={colors.text}
-          fontSize={s * 0.24}
-          fontFamily="'JetBrains Mono', monospace"
-          fontWeight="500"
-        >
+        <polygon points={pts} fill={colors.fill} stroke={colors.stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text} fontSize={s * 0.24}
+          fontFamily="'JetBrains Mono', monospace" fontWeight="500">
           {abbr}
         </text>
       </svg>
@@ -93,27 +64,13 @@ export function TokenShape({ entity, size = 64, dimmed = false }) {
 
   if (shape === 'triangle') {
     const margin = s * 0.08
-    const pts = [
-      `${cx},${margin}`,
-      `${s - margin},${s - margin}`,
-      `${margin},${s - margin}`,
-    ].join(' ')
+    const pts = [`${cx},${margin}`, `${s - margin},${s - margin}`, `${margin},${s - margin}`].join(' ')
     return (
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
-        <polygon
-          points={pts}
-          fill={colors.fill}
-          stroke={colors.stroke}
-          strokeWidth={strokeWidth}
-        />
-        <text
-          x={cx} y={cy + s * 0.1}
-          textAnchor="middle" dominantBaseline="middle"
-          fill={colors.text}
-          fontSize={s * 0.22}
-          fontFamily="'JetBrains Mono', monospace"
-          fontWeight="500"
-        >
+        <polygon points={pts} fill={colors.fill} stroke={colors.stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + s * 0.1} textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text} fontSize={s * 0.22}
+          fontFamily="'JetBrains Mono', monospace" fontWeight="500">
           {abbr}
         </text>
       </svg>
@@ -122,28 +79,31 @@ export function TokenShape({ entity, size = 64, dimmed = false }) {
 
   if (shape === 'diamond') {
     const pad = s * 0.08
-    const pts = [
-      `${cx},${pad}`,
-      `${s - pad},${cy}`,
-      `${cx},${s - pad}`,
-      `${pad},${cy}`,
-    ].join(' ')
+    const pts = [`${cx},${pad}`, `${s - pad},${cy}`, `${cx},${s - pad}`, `${pad},${cy}`].join(' ')
     return (
       <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
-        <polygon
-          points={pts}
-          fill={colors.fill}
-          stroke={colors.stroke}
-          strokeWidth={strokeWidth}
-        />
-        <text
-          x={cx} y={cy + 1}
-          textAnchor="middle" dominantBaseline="middle"
-          fill={colors.text}
-          fontSize={s * 0.22}
-          fontFamily="'JetBrains Mono', monospace"
-          fontWeight="500"
-        >
+        <polygon points={pts} fill={colors.fill} stroke={colors.stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text} fontSize={s * 0.22}
+          fontFamily="'JetBrains Mono', monospace" fontWeight="500">
+          {abbr}
+        </text>
+      </svg>
+    )
+  }
+
+  if (shape === 'pentagon') {
+    const r = s * 0.45
+    const pts = Array.from({ length: 5 }, (_, i) => {
+      const a = (2 * Math.PI / 5) * i - Math.PI / 2
+      return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`
+    }).join(' ')
+    return (
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{ opacity, filter: dropShadow, overflow: 'visible' }}>
+        <polygon points={pts} fill={colors.fill} stroke={colors.stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + 2} textAnchor="middle" dominantBaseline="middle"
+          fill={colors.text} fontSize={s * 0.22}
+          fontFamily="'JetBrains Mono', monospace" fontWeight="500">
           {abbr}
         </text>
       </svg>

@@ -5,7 +5,7 @@
  * correct drag-snap coordinate math.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { CELL_SIZE, GRID_ROWS, GRID_COLS, HAND_ROW_TOP, CONTAINER_WIDTH } from '../config'
+import { CELL_SIZE, GRID_ROWS, GRID_COLS, HAND_ROW_TOP, CONTAINER_WIDTH, HAND_SLOT_SIZE } from '../config'
 import { ENTITIES, getEntity } from '../data/entities'
 
 export function Grid({ placements, hoveredCell }) {
@@ -87,7 +87,7 @@ export function Grid({ placements, hoveredCell }) {
             <div
               key={entity.id}
               style={{
-                width: CELL_SIZE,
+                width: HAND_SLOT_SIZE,
                 height: CELL_SIZE,
                 border: `1px dashed ${entity.colors.stroke}${isPlaced ? '35' : '20'}`,
                 borderRadius: 4,

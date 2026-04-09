@@ -60,12 +60,23 @@ export function GameHeader({ puzzle, dayNumber, gameStatus, onReset }) {
               transition={{ type: 'spring', stiffness: 400, damping: 26 }}
               style={{
                 padding: '3px 9px', borderRadius: 20,
-                background: gameStatus === 'won' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                border: `1px solid ${gameStatus === 'won' ? 'rgba(16,185,129,0.38)' : 'rgba(239,68,68,0.38)'}`,
+                background: gameStatus === 'won'
+                  ? 'rgba(16,185,129,0.1)'
+                  : gameStatus === 'simulating'
+                  ? 'rgba(99,102,241,0.1)'
+                  : 'rgba(239,68,68,0.1)',
+                border: `1px solid ${gameStatus === 'won'
+                  ? 'rgba(16,185,129,0.38)'
+                  : gameStatus === 'simulating'
+                  ? 'rgba(99,102,241,0.38)'
+                  : 'rgba(239,68,68,0.38)'}`,
               }}
             >
-              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", color: gameStatus === 'won' ? '#6ee7b7' : '#fca5a5', letterSpacing: '0.14em' }}>
-                {gameStatus === 'won' ? 'SOLVED ✓' : 'CORRUPTED'}
+              <span style={{
+                fontSize: 9, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.14em',
+                color: gameStatus === 'won' ? '#6ee7b7' : gameStatus === 'simulating' ? '#a5b4fc' : '#fca5a5',
+              }}>
+                {gameStatus === 'won' ? 'SOLVED ✓' : gameStatus === 'simulating' ? 'ROUTING...' : 'CORRUPTED'}
               </span>
             </motion.div>
           )}
