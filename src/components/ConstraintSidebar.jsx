@@ -64,13 +64,13 @@ function ProgressBar({ constraints }) {
 
 // ── sidebar ───────────────────────────────────────────────────────────────────
 
-export function ConstraintSidebar({ constraints, revealKey, puzzle, hoveredEntityId }) {
+export function ConstraintSidebar({ constraints, revealKey, puzzle, hoveredEntityId, isMobile, mobileWidth }) {
   const satisfied = constraints.filter((c) => c.status === 'satisfied').length
   const total = constraints.length
   const anyRevealed = constraints.some((c) => c.status !== 'evaluating')
 
   return (
-    <aside style={{ width: 292, display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+    <aside style={{ width: isMobile ? mobileWidth : 292, display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
 
       {/* Header */}
       <div style={{ paddingBottom: 12, borderBottom: '1px solid rgba(99,102,241,0.14)' }}>

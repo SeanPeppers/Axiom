@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState } from 'react'
 import { useGameState } from './hooks/useGameState'
 import { getDailyInfo, getDailyStorageKey } from './hooks/useDaily'
 import { GameHeader } from './components/GameHeader'
@@ -11,11 +11,10 @@ import { SimulationLayer } from './components/SimulationLayer'
 import { ENTITIES } from './data/entities'
 import { PUZZLES } from './data/puzzles'
 import { generatePuzzle } from './engine/puzzleGenerator'
-import { CELL_SIZE, CONTAINER_WIDTH, CONTAINER_HEIGHT } from './config'
+import { useSizes } from './contexts/SizeContext'
 
 const COL_LABELS = ['A', 'B', 'C', 'D', 'E']
 const ROW_LABELS = ['1', '2', '3', '4', '5']
-const LABEL_W = 24  // px – width of the row-label gutter
 
 // ── Outer shell: owns mode and random seed ────────────────────────────────────
 
@@ -65,6 +64,8 @@ function GameSession({ puzzle, storageKey, dayNumber, mode, onModeChange, onNewR
     placeToken, removeToken, compile, finishSimulation, resetPuzzle,
   } = useGameState({ puzzle, storageKey, dayNumber })
 
+  const { isMobile, CELL_SIZE, CONTAINER_WIDTH, CONTAINER_HEIGHT, LABEL_W } = useSizes()
+
   const containerRef = useRef(null)
   const [hoveredEntityId, setHoveredEntityId] = useState(null)
 
@@ -91,10 +92,11 @@ function GameSession({ puzzle, storageKey, dayNumber, mode, onModeChange, onNewR
       <main style={{
         flex: 1,
         display: 'flex',
-        alignItems: 'flex-start',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'center' : 'flex-start',
         justifyContent: 'center',
-        gap: 40,
-        padding: '36px 24px',
+        gap: isMobile ? 20 : 40,
+        padding: isMobile ? '12px 12px 24px' : '36px 24px',
       }}>
 
         {/* ── Left column: board ───────────────────────── */}
@@ -176,7 +178,7 @@ function GameSession({ puzzle, storageKey, dayNumber, mode, onModeChange, onNewR
               background: 'rgba(6,11,24,0.6)',
               display: 'flex', flexDirection: 'column', gap: 8,
             }}>
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 6 : 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1 }}>
                   <div style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(99,102,241,0.7)', flexShrink: 0 }} />
                   <span style={{ fontSize: 11, color: 'rgba(165,180,252,0.8)' }}>
@@ -298,6 +300,8 @@ function GameSession({ puzzle, storageKey, dayNumber, mode, onModeChange, onNewR
           puzzle={puzzle}
           gameStatus={gameStatus}
           hoveredEntityId={hoveredEntityId}
+          isMobile={isMobile}
+          mobileWidth={CONTAINER_WIDTH + LABEL_W}
         />
       </main>
     </>

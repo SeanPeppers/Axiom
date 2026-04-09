@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, useMotionValue, animate } from 'framer-motion'
 import { TokenShape } from './TokenShape'
-import { CELL_SIZE, TOKEN_SIZE, GRID_WIDTH, GRID_HEIGHT, GRID_ROWS, GRID_COLS, SNAP_SPRING, getCellTopLeft, getHandTopLeft } from '../config'
+import { GRID_ROWS, GRID_COLS, SNAP_SPRING } from '../config'
+import { useSizes } from '../contexts/SizeContext'
 
 export function DraggableToken({
   entity,
@@ -12,8 +13,9 @@ export function DraggableToken({
   onRemove,
   onHoverCell,
   onHoverEntity,
-  disabled,   // true when game is won/lost
+  disabled,
 }) {
+  const { CELL_SIZE, TOKEN_SIZE, GRID_WIDTH, GRID_HEIGHT, getCellTopLeft, getHandTopLeft } = useSizes()
   const [isDragging, setIsDragging] = useState(false)
 
   const init = placement ? getCellTopLeft(placement.row, placement.col) : getHandTopLeft(handIndex)
@@ -28,17 +30,16 @@ export function DraggableToken({
     const pos = placement ? getCellTopLeft(placement.row, placement.col) : getHandTopLeft(handIndex)
     animate(x, pos.x, SNAP_SPRING)
     animate(y, pos.y, SNAP_SPRING)
-  }, [placement, handIndex, x, y])
+  }, [placement, handIndex, x, y, getCellTopLeft, getHandTopLeft])
 
   const snapBack = useCallback(() => {
     const pos = placement ? getCellTopLeft(placement.row, placement.col) : getHandTopLeft(handIndex)
     animate(x, pos.x, SNAP_SPRING)
     animate(y, pos.y, SNAP_SPRING)
-  }, [placement, handIndex, x, y])
+  }, [placement, handIndex, x, y, getCellTopLeft, getHandTopLeft])
 
   const getCell = useCallback((info) => {
     if (!containerRef.current) return null
-    // containerRef starts exactly at grid top-left (labels are outside)
     const rect = containerRef.current.getBoundingClientRect()
     const relX = info.point.x - rect.left
     const relY = info.point.y - rect.top
@@ -49,7 +50,7 @@ export function DraggableToken({
       }
     }
     return null
-  }, [containerRef])
+  }, [containerRef, CELL_SIZE, GRID_WIDTH, GRID_HEIGHT])
 
   const handleDrag = useCallback((_, info) => {
     onHoverCell(getCell(info))
@@ -63,19 +64,15 @@ export function DraggableToken({
       const result = onPlace(entity.id, cell.row, cell.col)
       if (result !== 'placed') snapBack()
     } else {
-      if (placement !== null) {
-        onRemove(entity.id)
-      } else {
-        snapBack()
-      }
+      if (placement !== null) onRemove(entity.id)
+      else snapBack()
     }
   }, [entity.id, placement, getCell, onPlace, onRemove, onHoverCell, snapBack])
 
   return (
     <motion.div
       style={{
-        position: 'absolute',
-        left: 0, top: 0,
+        position: 'absolute', left: 0, top: 0,
         width: TOKEN_SIZE, height: TOKEN_SIZE,
         x, y,
         cursor: disabled ? 'default' : isDragging ? 'grabbing' : 'grab',
