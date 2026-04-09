@@ -1,18 +1,16 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Share2, RotateCcw, Eye, Check } from 'lucide-react'
 import { buildShareText, copyToClipboard } from '../utils/share'
 
 export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSolution, isRandom }) {
-  const [copied,    setCopied]    = useState(false)
-  const [showText,  setShowText]  = useState(false)
+  const [copied, setCopied] = useState(false)
   const won = gameStatus === 'won'
 
   const shareText = buildShareText(dayNumber, attempts, won, isRandom)
 
   const handleShare = async () => {
     const ok = await copyToClipboard(shareText)
-    setShowText(true)
     if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
@@ -96,42 +94,31 @@ export function ResultCard({ dayNumber, attempts, gameStatus, onReset, onShowSol
         </button>
       </div>
 
-      {/* Share text preview — appears when SHARE is clicked */}
-      <AnimatePresence>
-        {showText && (
-          <motion.div
-            key="share-preview"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ marginTop: 14, overflow: 'hidden' }}
-          >
-            <div style={{
-              fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
-              color: 'rgba(148,163,184,0.4)', letterSpacing: '0.14em', marginBottom: 5,
-            }}>
-              {copied ? '✓ COPIED TO CLIPBOARD' : 'SHARE TEXT (copy below)'}
-            </div>
-            <pre style={{
-              margin: 0,
-              padding: '10px 12px',
-              borderRadius: 6,
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid rgba(99,102,241,0.15)',
-              fontSize: 14,
-              lineHeight: 1.7,
-              color: 'rgba(226,232,240,0.85)',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              userSelect: 'all',
-              cursor: 'text',
-            }}>
-              {shareText}
-            </pre>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Share text — always visible */}
+      <div style={{ marginTop: 14 }}>
+        <div style={{
+          fontSize: 9, fontFamily: "'JetBrains Mono', monospace",
+          color: 'rgba(148,163,184,0.4)', letterSpacing: '0.14em', marginBottom: 5,
+        }}>
+          {copied ? '✓ COPIED TO CLIPBOARD' : 'SHARE TEXT'}
+        </div>
+        <pre style={{
+          margin: 0,
+          padding: '10px 12px',
+          borderRadius: 6,
+          background: 'rgba(0,0,0,0.3)',
+          border: '1px solid rgba(99,102,241,0.15)',
+          fontSize: 14,
+          lineHeight: 1.7,
+          color: 'rgba(226,232,240,0.85)',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          userSelect: 'all',
+          cursor: 'text',
+        }}>
+          {shareText}
+        </pre>
+      </div>
     </motion.div>
   )
 }
