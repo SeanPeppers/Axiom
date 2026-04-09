@@ -116,16 +116,12 @@ export function useGameState({ puzzle, storageKey, dayNumber }) {
 
   const resetPuzzle = useCallback(() => {
     setPlacements(EMPTY)
-    setAttempts([])
     setGameStatus('playing')
     setLastCompileResults(null)
     setSimulationResult(null)
     setHoveredCell(null)
     setShowSolution(false)
-    if (storageKey) {
-      try { localStorage.removeItem(storageKey) } catch { /* */ }
-    }
-  }, [storageKey])
+  }, [])
 
   return {
     puzzle, dayNumber,
