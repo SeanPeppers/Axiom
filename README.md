@@ -8,7 +8,7 @@ Axiom is a daily, browser-based logic game where players must correctly configur
 
 Every day, a new **Axiom** is generated with a unique scenario and set of constraints.
 
-  * **Objective**: Place all four entities (**Data Node**, **Router**, **Firewall**, and **Virus**) into the correct 4x4 grid cells.
+  * **Objective**: Place all four entities (**Data Node**, **Router**, **Firewall**, and **Virus**) into the correct 6x6 grid cells.
   * **Constraints**: Each entity has specific rules (e.g., "Firewall must be adjacent to Router," or "Virus must NOT occupy Row 1").
   * **Compiling**: Once all entities are placed, you hit **COMPILE**. You have **3 attempts** to find the valid configuration before the system is "corrupted".
   * **Difficulty**: Puzzles range from **BASIC** to **ADVANCED**, introducing conditional logic (IF/THEN) and stricter geometric requirements.
